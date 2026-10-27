@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#050b1d">
-<title>INPP MASTER</title>
+<title>AINPP MASTER</title>
 
 <style>
 * {
@@ -459,16 +459,45 @@ function displayQuestion() {
     title.textContent = "PARTIE TERMINÉE";
     text.replaceChildren();
 
-    const result = document.createElement("p");
-    result.textContent =
-      "Ton score : " + score + " / " + questions.length;
-    text.appendChild(result);
+    const result = document.createElement("p"
+if (currentQuestion >= questions.length) {
+  const total = questions.length;
+  const bonnesReponses = score;
+  const mauvaisesReponses = total - score;
+  const pourcentage = total > 0
+    ? Math.round((score / total) * 100)
+    : 0;
 
-    const restart = document.createElement("p");
-    restart.textContent =
-      "Reviens à l’accueil pour relancer une partie.";
-    text.appendChild(restart);
-    return;
+  title.textContent = "BILAN DE LA PARTIE";
+  text.replaceChildren();
+
+  const scoreFinal = document.createElement("h3");
+  scoreFinal.textContent = score + " / " + total;
+  text.appendChild(scoreFinal);
+
+  const resultat = document.createElement("p");
+  resultat.textContent = "Réussite : " + pourcentage + " %";
+  text.appendChild(resultat);
+
+  const bonnes = document.createElement("p");
+  bonnes.textContent = "✅ Bonnes réponses : " + bonnesReponses;
+  text.appendChild(bonnes);
+
+  const mauvaises = document.createElement("p");
+  mauvaises.textContent = "❌ Mauvaises réponses : " + mauvaisesReponses;
+  text.appendChild(mauvaises);
+
+  const rejouer = document.createElement("button");
+  rejouer.className = "play-button";
+  rejouer.textContent = "REJOUER — 20 NOUVELLES QUESTIONS";
+  rejouer.onclick = () => {
+    showMode("solo");
+  };
+  text.appendChild(rejouer);
+
+  return;
+}
+
   }
 
   const q = questions[currentQuestion];
