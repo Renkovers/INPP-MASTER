@@ -395,29 +395,117 @@ header {
   </section>
 </main>
 
+
 <script>
-function showMode(mode) {
+const API_URL = "https://tpforjnpwhfbasnmpefv.supabase.co/functions/v1/quiz-api";
+
+let questions = [];
+let currentQuestion = 0;
+let score = 0;
+
+async function showMode(mode) {
   const panel = document.getElementById("panel");
   const title = document.getElementById("panel-title");
   const text = document.getElementById("panel-text");
 
+  panel.style.display = "block";
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
   if (mode === "solo") {
     title.textContent = "MODE SOLO";
-    text.textContent =
-      "Le défi individuel arrive bientôt. La prochaine étape sera de connecter les catégories et les questions Supabase.";
+    text.textContent = "Chargement des questions…";
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          action: "get_questions",
+          limit: 10
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.questions || result.questions.length === 0) {
+        throw new Error(result.error || "Aucune question disponible.");
+      }
+
+      questions = result.questions;
+      currentQuestion = 0;
+      score = 0;
+      displayQuestion();
+    } catch (error) {
+      title.textContent = "ERREUR DE CHARGEMENT";
+      text.textContent =
+        "Impossible de charger les questions. Vérifie la connexion à Supabase et réessaie. Détail : " +
+        error.message;
+    }
   } else {
     title.textContent = "MODE MULTIJOUEUR";
     text.textContent =
-      "Le défi entre amis arrive bientôt. Nous ajouterons les salons, les codes d’invitation et le classement.";
+      "Le mode entre amis sera connecté après la validation du mode solo.";
+  }
+}
+
+function displayQuestion() {
+  const title = document.getElementById("panel-title");
+  const text = document.getElementById("panel-text");
+
+  if (currentQuestion >= questions.length) {
+    title.textContent = "PARTIE TERMINÉE";
+    text.textContent =
+      "Ton score : " + score + " / " + questions.length +
+      ". Reviens à l’accueil pour relancer une partie.";
+    return;
   }
 
-  panel.style.display = "block";
-  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  const q = questions[currentQuestion];
+  title.textContent =
+    "QUESTION " + (currentQuestion + 1) + " / " + questions.length;
+
+  text.replaceChildren();
+
+  const prompt = document.createElement("p");
+  prompt.textContent = q.prompt;
+  text.appendChild(prompt);
+
+  const options = Array.isArray(q.options) ? q.options : [];
+
+  options.forEach((option, index) => {
+    const button = document.createElement("button");
+    button.className = "play-button";
+    button.textContent =
+      typeof option === "string"
+        ? option
+        : option.text || option.label || ("Réponse " + (index + 1));
+
+    button.onclick = () => {
+      text.replaceChildren();
+
+      const message = document.createElement("p");
+      message.textContent =
+        "Réponse enregistrée. La validation des réponses sera ajoutée à l’étape suivante.";
+      text.appendChild(message);
+
+      const next = document.createElement("button");
+      next.className = "play-button";
+      next.textContent = "QUESTION SUIVANTE";
+      next.onclick = () => {
+        currentQuestion++;
+        displayQuestion();
+      };
+      text.appendChild(next);
+    };
+
+    text.appendChild(button);
+  });
 }
 
 function closePanel() {
   document.getElementById("panel").style.display = "none";
 }
 </script>
-</body>
-</html>
+
