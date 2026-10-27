@@ -593,5 +593,108 @@ if (currentQuestion >= questions.length) {
 function closePanel() {
   document.getElementById("panel").style.display = "none";
 }
+
+async function showMultiplayerForm(action) {
+  const title = document.getElementById("panel-title");
+  const text = document.getElementById("panel-text");
+
+  title.textContent =
+    action === "create" ? "CRÉER UNE SALLE" : "REJOINDRE UNE SALLE";
+
+  text.replaceChildren();
+
+  const form = document.createElement("div");
+
+  const nickname = document.createElement("input");
+  nickname.placeholder = "Ton pseudo";
+  nickname.maxLength = 18;
+  nickname.required = true;
+  nickname.style.width = "100%";
+  nickname.style.boxSizing = "border-box";
+  nickname.style.margin = "10px 0";
+  form.appendChild(nickname);
+
+  let roomCode = null;
+
+  if (action === "join") {
+    roomCode = document.createElement("input");
+    roomCode.placeholder = "Code de la salle";
+    roomCode.maxLength = 6;
+    roomCode.style.width = "100%";
+    roomCode.style.boxSizing = "border-box";
+    roomCode.style.margin = "10px 0";
+    form.appendChild(roomCode);
+  }
+
+  const submit = document.createElement("button");
+  submit.className = "play-button";
+  submit.textContent =
+    action === "create" ? "CRÉER LA SALLE" : "REJOINDRE";
+  form.appendChild(submit);
+
+  const message = document.createElement("p");
+  text.appendChild(form);
+  text.appendChild(message);
+
+  submit.onclick = async () => {
+    if (nickname.value.trim().length < 2) {
+      message.textContent = "Choisis un pseudo d'au moins 2 caractères.";
+      return;
+    }
+
+    const body = {
+      action: action === "create" ? "create_game" : "join_game",
+      nickname: nickname.value.trim()
+    };
+
+    if (action === "join") {
+      if (!roomCode.value.trim()) {
+        message.textContent = "Entre le code de la salle.";
+        return;
+      }
+      body.room_code = roomCode.value.trim().toUpperCase();
+    }
+
+    submit.disabled = true;
+    message.textContent = "Connexion à Supabase…";
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || "Impossible de continuer.");
+      }
+
+      title.textContent =
+        action === "create" ? "SALLE CRÉÉE !" : "SALLE REJOINTE !";
+      text.replaceChildren();
+
+      const info = document.createElement("p");
+      info.textContent = "Pseudo : " + nickname.value.trim();
+      text.appendChild(info);
+
+      if (result.room_code) {
+        const code = document.createElement("h2");
+        code.textContent = "CODE : " + result.room_code;
+        text.appendChild(code);
+      }
+
+      const waiting = document.createElement("p");
+      waiting.textContent =
+        "Connexion établie. L'écran d'attente sera ajouté ensuite.";
+      text.appendChild(waiting);
+    } catch (error) {
+      message.textContent = "Erreur : " + error.message;
+      submit.disabled = false;
+    }
+  };
+}
+
 </script>
 
