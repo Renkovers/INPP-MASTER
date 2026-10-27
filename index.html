@@ -443,11 +443,26 @@ async function showMode(mode) {
         "Impossible de charger les questions. Vérifie la connexion à Supabase et réessaie. Détail : " +
         error.message;
     }
-  } else {
-    title.textContent = "MODE MULTIJOUEUR";
-    text.textContent =
-      "Le mode entre amis sera connecté après la validation du mode solo.";
-  }
+} else {
+  title.textContent = "MODE MULTIJOUEUR";
+  text.replaceChildren();
+
+  const intro = document.createElement("p");
+  intro.textContent = "Joue avec tes collègues : crée une salle ou rejoins une salle existante.";
+  text.appendChild(intro);
+
+  const createButton = document.createElement("button");
+  createButton.className = "play-button";
+  createButton.textContent = "CRÉER UNE SALLE";
+  createButton.onclick = () => showMultiplayerForm("create");
+  text.appendChild(createButton);
+
+  const joinButton = document.createElement("button");
+  joinButton.className = "play-button";
+  joinButton.textContent = "REJOINDRE UNE SALLE";
+  joinButton.onclick = () => showMultiplayerForm("join");
+  text.appendChild(joinButton);
+}
 }
 
 
