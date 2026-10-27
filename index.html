@@ -450,19 +450,29 @@ async function showMode(mode) {
   }
 }
 
+
 function displayQuestion() {
   const title = document.getElementById("panel-title");
   const text = document.getElementById("panel-text");
 
   if (currentQuestion >= questions.length) {
     title.textContent = "PARTIE TERMINÉE";
-    text.textContent =
-      "Ton score : " + score + " / " + questions.length +
-      ". Reviens à l’accueil pour relancer une partie.";
+    text.replaceChildren();
+
+    const result = document.createElement("p");
+    result.textContent =
+      "Ton score : " + score + " / " + questions.length;
+    text.appendChild(result);
+
+    const restart = document.createElement("p");
+    restart.textContent =
+      "Reviens à l’accueil pour relancer une partie.";
+    text.appendChild(restart);
     return;
   }
 
   const q = questions[currentQuestion];
+
   title.textContent =
     "QUESTION " + (currentQuestion + 1) + " / " + questions.length;
 
@@ -483,26 +493,64 @@ function displayQuestion() {
         : option.text || option.label || ("Réponse " + (index + 1));
 
     button.onclick = () => {
+      // Empêche de répondre plusieurs fois.
+      if (text.dataset.answered === "true") return;
+      text.dataset.answered = "true";
+
+      const correctIndex = Number(q.correct_option);
+      const isCorrect = index === correctIndex;
+
+      if (isCorrect) score++;
+
       text.replaceChildren();
 
-      const message = document.createElement("p");
-      message.textContent =
-        "Réponse enregistrée. La validation des réponses sera ajoutée à l’étape suivante.";
-      text.appendChild(message);
+      const result = document.createElement("p");
+      result.textContent = isCorrect
+        ? "✅ Bonne réponse !"
+        : "❌ Mauvaise réponse.";
+      text.appendChild(result);
+
+      const answer = document.createElement("p");
+      const correctOption = options[correctIndex];
+      answer.textContent =
+        "Bonne réponse : " +
+        (typeof correctOption === "string"
+          ? correctOption
+          : correctOption?.text || correctOption?.label || "Réponse indisponible");
+      text.appendChild(answer);
+
+      if (q.explanation) {
+        const explanation = document.createElement("p");
+        explanation.textContent = "Explication : " + q.explanation;
+        text.appendChild(explanation);
+      }
+
+      const scoreText = document.createElement("p");
+      scoreText.textContent =
+        "Score actuel : " + score + " / " + (currentQuestion + 1);
+      text.appendChild(scoreText);
 
       const next = document.createElement("button");
       next.className = "play-button";
-      next.textContent = "QUESTION SUIVANTE";
+      next.textContent =
+        currentQuestion + 1 >= questions.length
+          ? "VOIR LE RÉSULTAT"
+          : "QUESTION SUIVANTE";
+
       next.onclick = () => {
         currentQuestion++;
         displayQuestion();
       };
+
       text.appendChild(next);
     };
 
     text.appendChild(button);
   });
+
+  text.dataset.answered = "false";
 }
+
 
 function closePanel() {
   document.getElementById("panel").style.display = "none";
