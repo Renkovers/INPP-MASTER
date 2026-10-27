@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#050b1d">
-<title>AINPP MASTER</title>
+<title>INPP MASTER</title>
 
 <style>
 * {
@@ -455,11 +455,7 @@ function displayQuestion() {
   const title = document.getElementById("panel-title");
   const text = document.getElementById("panel-text");
 
-  if (currentQuestion >= questions.length) {
-    title.textContent = "PARTIE TERMINÉE";
-    text.replaceChildren();
 
-    const result = document.createElement("p"
 if (currentQuestion >= questions.length) {
   const total = questions.length;
   const bonnesReponses = score;
@@ -496,6 +492,8 @@ if (currentQuestion >= questions.length) {
   text.appendChild(rejouer);
 
   return;
+}
+
 }
 
   }
